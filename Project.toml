@@ -1,0 +1,10 @@
+name = "MIPTDataProcessing"
+uuid = "59e4b0ad-08a5-4ebc-afae-402296ac7198"
+authors = ["ttolppanen <taneli.tolppanen@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+QuantumOperators = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
+QuantumStates = "0a1581c1-ab82-4660-a1be-26f7b3483457"
+QuantumTimeEvolution = "7373133c-a6f7-4e95-971a-e453f442ca60"
