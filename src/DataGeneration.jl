@@ -1,14 +1,21 @@
+# using QuantumStates
+# using QuantumOperators
+# using QuantumTimeEvolution
+
 export generate_data
 
-function get_alg_types()
-    return [:exact, :krylov, :mps]
+function get_msr(msr)
+    measurement = Dict(
+        "std_n" => (;exact = "measuresitesrandomly!(L, nop(d), p)", mps = "asdasd")
+    )
+    return measurement[msr]
 end
 
 function generate_data(; kwargs...)
     if kwargs[:alg] == :exact
         calc_exact(; kwargs[])
     else if kwargs[:alg] == :krylov
-        calc_krylov(; d = kwargs[:d], L = kwargs[:L], dt = kwargs[:dt], t = kwargs[:t], state = kwargs[:state], k = kwargs[:k], p = kwargs[:p], traj = kwargs[:traj])
+        calc_krylov(; d = kwargs[:d], L = kwargs[:L], dt = kwargs[:dt], t = kwargs[:t], state = kwargs[:state], k = kwargs[:k], p = kwargs[:p], msr_type = kwargs[:msr_type], traj = kwargs[:traj])
     else if kwargs[:alg] == :mps
     else
         println("error in alg")
@@ -19,10 +26,10 @@ end
 function calc_exact()
 end
 
-function calc_krylov(; d, L, dt, t, state, k, p, traj)
+function calc_krylov(; d, L, dt, t, state, k, p, msr_type, traj)
     state = eval(Meta.parse(state))
     H = bosehubbard(d, L)
-    effect! = measuresitesrandomly!(L, nop(d), p)
+    effect! = eval(Meta.parse(get_msr(msr_type)[:exact]))
     r_f() = krylovevolve(state, H, dt, t, k; effect!)
     r = solvetrajectories(r_f, traj)
     ent_data = zeros(length(r[1]), length(r))
