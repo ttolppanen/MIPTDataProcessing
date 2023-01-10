@@ -4,40 +4,71 @@
 
 export generate_data
 
-function get_msr(msr)
-    measurement = Dict(
-        "std_n" => (;exact = "measuresitesrandomly!(L, nop(d), p)", mps = "asdasd")
-    )
-    return measurement[msr]
-end
-
-function generate_data(; kwargs...)
+function generate_data(filename; kwargs...)
     if kwargs[:alg] == :exact
-        calc_exact(; kwargs[])
-    else if kwargs[:alg] == :krylov
-        calc_krylov(; d = kwargs[:d], L = kwargs[:L], dt = kwargs[:dt], t = kwargs[:t], state = kwargs[:state], k = kwargs[:k], p = kwargs[:p], msr_type = kwargs[:msr_type], traj = kwargs[:traj])
-    else if kwargs[:alg] == :mps
+        calc_exact(filename; kwargs...)
+    elseif kwargs[:alg] == :krylov 
+        calc_krylov(filename; kwargs...)
+    elseif kwargs[:alg] == :mps
+        calc_mps(filename; kwargs...)
     else
         println("error in alg")
         # throw error
     end
 end
 
-function calc_exact()
+function calc_exact(filename; d, L, dt, t, state, p, msr, traj, w, U, J, observables, alg)
+    state0 = eval(Meta.parse(get_initial_states()[state][:exact]))
+    H = bosehubbard(d, L; w, U, J)
+    U = exp(-im * dt * Matrix(H))
+    effect! = eval(Meta.parse(get_measurements()[msr][:exact]))
+    r_f() = exactevolve(state0, U, dt, t; effect!)
+    r = solvetrajectories(r_f, traj)
+    for observable in observables
+        obsrv_data = zeros(length(r[1]), length(r))
+        for traj_i in eachindex(r)
+            for timestep_i in eachindex(r[traj_i])
+                s = r[traj_i][timestep_i] # this gets used in get_observable
+                obsrv_data[timestep_i, traj_i] = eval(Meta.parse(get_observables()[observable][:exact]))
+            end
+        end
+        saveh5(filename, obsrv_data, p; d, L, dt, t, state, msr, w, U, J, observable, alg)
+    end
 end
 
-function calc_krylov(; d, L, dt, t, state, k, p, msr_type, traj)
-    state = eval(Meta.parse(state))
-    H = bosehubbard(d, L)
-    effect! = eval(Meta.parse(get_msr(msr_type)[:exact]))
-    r_f() = krylovevolve(state, H, dt, t, k; effect!)
+function calc_krylov(filename; d, L, dt, t, state, k, p, msr, traj, w, U, J, observables, alg)
+    println("JOO")
+    state0 = eval(Meta.parse(get_initial_states()[state][:exact]))
+    H = bosehubbard(d, L; w, U, J)
+    effect! = eval(Meta.parse(get_measurements()[msr][:exact]))
+    r_f() = krylovevolve(state0, H, dt, t, k; effect!)
     r = solvetrajectories(r_f, traj)
-    ent_data = zeros(length(r[1]), length(r))
-    for traj_i in eachindex(r) 
-        for timestep_i in eachindex(r[traj_i])
-            s = r[traj_i][timestep_i]
-            ent_data[timestep_i, traj_i] = entanglement(d, L, s, Int(floor(L/2)))
+    for observable in observables
+        obsrv_data = zeros(length(r[1]), length(r))
+        for traj_i in eachindex(r)
+            for timestep_i in eachindex(r[traj_i])
+                s = r[traj_i][timestep_i] # this gets used in get_observable
+                obsrv_data[timestep_i, traj_i] = eval(Meta.parse(get_observables()[observable][:exact]))
+            end
         end
+        saveh5(filename, obsrv_data, p; d, L, dt, t, state, k, msr, w, U, J, observable, alg)
     end
-    saveh5(ent_data, p; d, L, dt, t, k, initial_state = "zeroone(d, L)", w=1, U=1, J=1, msr_type = "std_n")
+end
+
+function calc_mps(filename; d, L, dt, t, state, trotter_order, p, msr, traj, w, U, J, observables, alg, ITensors_apply_kwargs...)
+    state0 = eval(Meta.parse(get_initial_states()[state][:mps]))
+    gates = bosehubbardgates(siteinds(state0), dt; k=trotter_order)
+    effect! = eval(Meta.parse(get_measurements()[msr][:mps]))
+    r_f() = mpsevolve(state0, gates, dt, t; effect!, ITensors_apply_kwargs...)
+    r = solvetrajectories(r_f, traj)
+    for observable in observables
+        obsrv_data = zeros(length(r[1]), length(r))
+        for traj_i in eachindex(r)
+            for timestep_i in eachindex(r[traj_i])
+                s = r[traj_i][timestep_i] # this gets used in get_observable
+                obsrv_data[timestep_i, traj_i] = eval(Meta.parse(get_observables()[observable][:mps]))
+            end
+        end
+        saveh5(filename, obsrv_data, p; d, L, dt, t, state, trotter_order, msr, w, U, J, observable, alg)
+    end
 end
