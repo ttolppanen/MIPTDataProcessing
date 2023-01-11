@@ -11,11 +11,11 @@ end
 
 function std_n_exact(; sp...)
     msrop = measurementoperators(nop(sp[:d]), sp[:L])
-    meffect!(state) = measuresitesrandomly!(state, msrop, sp[:p])
+    meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
     return meffect!
 end
 function std_n_mps(ITensors_apply_kwargs; sp...)
     msrop = measurementoperators(nop(sp[:d]), siteinds(sp[:state0]))
-    meffect!(state) = measuresitesrandomly!(state, msrop, sp[:p]; ITensors_apply_kwargs...)
+    meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob; ITensors_apply_kwargs...)
     return meffect!
 end
