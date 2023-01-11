@@ -42,6 +42,7 @@ function add_data_to_p_group(g_p, obsrv_data; observable)
     data = create_dataset(g_p, string(observable), Float64, ((data_size[1], data_size[2]), (data_size[1], -1)), chunk = (data_size[1], 1))
     data[:, :] = obsrv_data
     attributes(data)["end_mean"] = mean(obsrv_data[end, :])
+    attributes(data)["end_standard_deviation"] = std(obsrv_data[end, :])
 end
 
 function same_param(g, params)
