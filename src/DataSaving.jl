@@ -1,4 +1,5 @@
 # using HDF5
+# using Statistics
 
 function saveh5(filename, obsrv_data, msr_prob; observable, simulation_param...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
@@ -15,7 +16,7 @@ function saveh5(filename, obsrv_data, msr_prob; observable, simulation_param...)
                 return
             end
         end
-        g_mipt = new_mipt_group(file, simulation_param...)
+        g_mipt = new_mipt_group(file; simulation_param...)
         g_p = new_p_group(g_mipt, msr_prob)
         add_data_to_p_group(g_p, obsrv_data; observable)
     end
@@ -25,7 +26,7 @@ function new_mipt_group(file; simulation_param...)
     group_name = "mipt_" * string(length(file) + 1)
     g_mipt = create_group(file, group_name)
     for (key, value) in simulation_param
-        attributes(g_mipt)["$key"] = value
+        attributes(g_mipt)["$key"] = isa(value, Symbol) ? string(value) : value
     end
     return g_mipt
 end
@@ -43,3 +44,13 @@ function add_data_to_p_group(g_p, obsrv_data; observable)
     attributes(data)["end_mean"] = mean(obsrv_data[end, :])
 end
 
+function same_param(g, params)
+    if issetequal(keys(attributes(g)), String.(keys(params)))
+        attribute_values = [read_attribute(g, key) for key in keys(attributes(g))]
+        param_values = [isa(params[Symbol(key)], Symbol) ? string(params[Symbol(key)]) : params[Symbol(key)] for key in keys(attributes(g))]
+        if issetequal(attribute_values, param_values)
+            return true
+        end
+    end
+    return false
+end

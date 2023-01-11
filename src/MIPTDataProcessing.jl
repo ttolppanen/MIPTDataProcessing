@@ -3,6 +3,9 @@ module MIPTDataProcessing
 using QuantumStates
 using QuantumOperators
 using QuantumTimeEvolution
+using ITensors
+using HDF5
+using Statistics
 
 # internal
 include("Utility/SplitKwargs.jl")
