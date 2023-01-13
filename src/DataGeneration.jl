@@ -28,6 +28,9 @@ function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, tr
         r_f() = exactevolve(state0, expU, dt, t; effect!)
         r = solvetrajectories(r_f, traj)
         for observable in observables
+            #get correct num of traj
+            #if c_t < 1 skip
+            #r = solvetrajectories(r_f, traj_real)
             obsrv_data = zeros(length(r[1]), length(r))
             for traj_i in eachindex(r)
                 for timestep_i in eachindex(r[traj_i])
