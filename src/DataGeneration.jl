@@ -26,13 +26,22 @@ function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, tr
     for p in probabilities
         effect!(state) = meffect!(state, p)
         r_f() = exactevolve(state0, expU, dt, t; effect!)
-        r = solvetrajectories(r_f, traj)
+        traj_to_solve = traj - get_min_existing_traj(filename; observables, msr_prob = p, alg, sp...)
+        if traj_to_solve <= 0
+            println("Trajectories already exist for all observers in p = " * string(p))
+            continue
+        end
+        println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
+        r = solvetrajectories(r_f, traj_to_solve)
         for observable in observables
-            #get correct num of traj
-            #if c_t < 1 skip
-            #r = solvetrajectories(r_f, traj_real)
-            obsrv_data = zeros(length(r[1]), length(r))
-            for traj_i in eachindex(r)
+            existing_traj_number = get_num_of_traj(filename; observable, msr_prob = p, alg, sp...)
+            traj_to_calculate = traj - existing_traj_number
+            if traj_to_calculate <= 0
+                println("Trajectories already exist for p = " * string(p) * "observable = " * string(observable))
+                continue
+            end
+            obsrv_data = zeros(length(r[1]), traj_to_calculate)
+            for traj_i in 1:traj_to_calculate
                 for timestep_i in eachindex(r[traj_i])
                     s = r[traj_i][timestep_i] # this gets used in get_observable
                     obsrv_data[timestep_i, traj_i] = get_observables()[observable][:exact](s; sp...)
