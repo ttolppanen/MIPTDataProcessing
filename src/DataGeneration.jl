@@ -34,8 +34,7 @@ function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, tr
         println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
         r = solvetrajectories(r_f, traj_to_solve)
         for observable in observables
-            existing_traj_number = get_num_of_traj(filename; observable, msr_prob = p, alg, sp...)
-            traj_to_calculate = traj - existing_traj_number
+            traj_to_calculate = traj - get_num_of_traj(filename; observable, msr_prob = p, alg, sp...)
             if traj_to_calculate <= 0
                 println("Trajectories already exist for p = " * string(p) * "observable = " * string(observable))
                 continue
