@@ -1,9 +1,14 @@
 # using HDF5
 # using Statistics
+using TOML
 
 function saveh5(filename, obsrv_data, msr_prob, observable; simulation_param...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "cw") do file
+        if (!haskey(attributes(file), "version"))
+            path_to_project = joinpath(@__DIR__, "..", "Project.toml")
+            attributes(file)["version"] = TOML.parsefile(path_to_project)["version"]
+        end
         for g_mipt in file
             if same_param(g_mipt, simulation_param)
                 if haskey(g_mipt, "p = $msr_prob")

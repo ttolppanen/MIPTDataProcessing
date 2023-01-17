@@ -2,6 +2,7 @@
 
 export get_probabilities
 export get_data_end_mean
+export get_attributes_string
 
 function get_probabilities(filename, groupname)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
@@ -32,4 +33,20 @@ function get_data_end_mean(group::HDF5.Group, probabilities, observer::Symbol)
         push!(out, e_mean)
     end
     return out
+end
+
+function get_attributes_string(filename, groupname)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        g_mipt = file[groupname]
+        return get_attributes_string(g_mipt)
+    end
+end
+function get_attributes_string(group::HDF5.Group)
+    out = ""
+    for attr_key in keys(attributes(group))
+        value = string(read_attribute(group, attr_key))
+        out *= "$attr_key = $value, "
+    end
+    return out[1:end-2]
 end
