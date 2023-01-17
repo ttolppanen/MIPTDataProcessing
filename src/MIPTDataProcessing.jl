@@ -17,5 +17,6 @@ include("InitialStates.jl")
 include("Measurements.jl")
 include("Observables.jl")
 include("DataGeneration.jl")
+include("DataFetching.jl")
 
 end # module
