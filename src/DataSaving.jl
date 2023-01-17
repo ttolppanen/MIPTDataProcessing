@@ -1,7 +1,7 @@
 # using HDF5
 # using Statistics
 
-function saveh5(filename, obsrv_data, msr_prob; observable, simulation_param...)
+function saveh5(filename, obsrv_data, msr_prob, observable; simulation_param...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "cw") do file
         for g_mipt in file
@@ -12,19 +12,19 @@ function saveh5(filename, obsrv_data, msr_prob; observable, simulation_param...)
                         dset_obsrv = g_p[string(observable)]
                         add_data_to_obsrv_group(dset_obsrv, obsrv_data)
                     else
-                        create_data_to_p_group(g_p, obsrv_data; observable)
+                        create_data_to_p_group(g_p, obsrv_data, observable)
                     end
                     return
                 else
                     g_p = new_p_group(g_mipt, msr_prob)
-                    create_data_to_p_group(g_p, obsrv_data; observable)
+                    create_data_to_p_group(g_p, obsrv_data, observable)
                 end
                 return
             end
         end
         g_mipt = new_mipt_group(file; simulation_param...)
         g_p = new_p_group(g_mipt, msr_prob)
-        create_data_to_p_group(g_p, obsrv_data; observable)
+        create_data_to_p_group(g_p, obsrv_data, observable)
     end
 end
 
@@ -43,7 +43,7 @@ function new_p_group(g_mipt, msr_prob)
     return g_p
 end
 
-function create_data_to_p_group(g_p, obsrv_data; observable)
+function create_data_to_p_group(g_p, obsrv_data, observable)
     data_size = size(obsrv_data) # 1 timesteps, 2 trajectories
     data = create_dataset(g_p, string(observable), Float64, ((data_size[1], data_size[2]), (data_size[1], -1)), chunk = (data_size[1], 1))
     data[:, :] = obsrv_data
@@ -57,7 +57,7 @@ function add_data_to_obsrv_group(dset_obsrv, obsrv_data)
     traj = dsetsize[2]
     new_traj = size(obsrv_data)[2]
     HDF5.set_extent_dims(dset_obsrv, (timesteps, traj + new_traj))
-    dset_obsrv[:, (traj + 1):(traj + new_traj)]
+    dset_obsrv[:, (traj + 1):(traj + new_traj)] = obsrv_data
     end_mean = mean(dset_obsrv[end, :])
     end_std = std(dset_obsrv[end, :])
     delete_attribute(dset_obsrv, "end_mean")

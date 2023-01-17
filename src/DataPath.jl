@@ -15,7 +15,7 @@ function getdatapath()
     end
 end
 
-function get_num_of_traj(filename; observable, msr_prob, simulation_param...)
+function get_num_of_traj(filename, msr_prob, observable; simulation_param...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "r") do file
         try
@@ -31,14 +31,14 @@ function get_num_of_traj(filename; observable, msr_prob, simulation_param...)
     end
 end
 
-function get_min_existing_traj(filename; observables, msr_prob, simulation_param...)
+function get_min_existing_traj(filename, msr_prob, observables; simulation_param...)
     out = 0
     for i in eachindex(observables)
         observable = observables[i]
         if i == 1
-            out = get_num_of_traj(filename; observable, msr_prob, simulation_param...)
+            out = get_num_of_traj(filename, msr_prob, observable; simulation_param...)
         else
-            traj = get_num_of_traj(filename; observable, msr_prob, simulation_param...)
+            traj = get_num_of_traj(filename, msr_prob, observable; simulation_param...)
             if (traj > out)
                 out = traj 
             end
