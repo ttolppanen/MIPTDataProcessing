@@ -33,7 +33,7 @@ function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, tr
             continue
         end
         println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
-        r = solvetrajectories(r_f, traj_to_solve)
+        r = solvetrajectories(r_f, traj_to_solve; paral = :distributed)
         for observable in observables
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp...)
             if traj_to_calculate <= 0
@@ -66,7 +66,7 @@ function calc_krylov(filename; d, L, dt, t, state, k, probabilities, measurement
             continue
         end
         println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
-        r = solvetrajectories(r_f, traj_to_solve)
+        r = solvetrajectories(r_f, traj_to_solve; paral = :distributed)
         for observable in observables
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp...)
             if traj_to_calculate <= 0
@@ -99,7 +99,7 @@ function calc_mps(filename; d, L, dt, t, state, trotter_order, probabilities, me
             continue
         end
         println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
-        r = solvetrajectories(r_f, traj_to_solve)
+        r = solvetrajectories(r_f, traj_to_solve; paral = :distributed)
         for observable in observables
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp..., ITensors_apply_kwargs...)
             if traj_to_calculate <= 0
