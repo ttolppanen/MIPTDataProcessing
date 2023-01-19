@@ -73,11 +73,15 @@ end
 
 function same_param(g, params)
     if issetequal(keys(attributes(g)), String.(keys(params)))
-        attribute_values = [read_attribute(g, key) for key in keys(attributes(g))]
-        param_values = [isa(params[Symbol(key)], Symbol) ? string(params[Symbol(key)]) : params[Symbol(key)] for key in keys(attributes(g))]
-        if issetequal(attribute_values, param_values)
-            return true
+        for key in keys(attributes(g))
+            attr_value = read_attribute(g, key)
+            param_value = params[Symbol(key)]
+            param_value = isa(param_value, Symbol) ? string(param_value) : param_value
+            if attr_value != param_value
+                return false
+            end
         end
+        return true
     end
     return false
 end
