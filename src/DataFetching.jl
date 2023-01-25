@@ -1,8 +1,28 @@
 # using HDF5
 
+export get_groups
+export get_groups_with_param
 export get_probabilities
 export get_data_end_mean
 export get_attributes_string
+
+function get_groups(filename)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        return keys(file)
+    end
+end
+
+function get_groups_with_param(filename; params...)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        for g in file
+            if all([haskey(attributes(g), string(key)) && read_attribute(g, string(key)) == value for (key, value) in params])
+                println(HDF5.name(g) * " | " * get_attributes_string(g; addnewline = false))
+            end
+        end
+    end
+end
 
 function get_probabilities(filename, groupname)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
@@ -35,18 +55,24 @@ function get_data_end_mean(group::HDF5.Group, probabilities, observer::Symbol)
     return out
 end
 
-function get_attributes_string(filename, groupname)
+function get_attributes_string(filename, groupname; kwargs...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "r") do file
         g_mipt = file[groupname]
-        return get_attributes_string(g_mipt)
+        return get_attributes_string(g_mipt; kwargs...)
     end
 end
-function get_attributes_string(group::HDF5.Group)
+function get_attributes_string(group::HDF5.Group; addnewline::Bool = true, newlinecharlimit::Integer = 50)
     out = ""
+    newlinesadded = 0
     for attr_key in keys(attributes(group))
         value = string(read_attribute(group, attr_key))
-        out *= "$attr_key = $value, "
+        stringToAdd = "$attr_key = $value,"
+        if addnewline && length(out * stringToAdd) > newlinecharlimit * (newlinesadded + 1)
+            out *= "\n"
+            newlinesadded += 1;
+        end
+        out *= stringToAdd * " "
     end
     return out[1:end-2]
 end
