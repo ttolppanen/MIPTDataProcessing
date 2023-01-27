@@ -5,6 +5,7 @@ export get_groups_with_param
 export get_probabilities
 export get_data_end_mean
 export get_attributes_string
+export get_attribute
 
 function get_groups(filename)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
@@ -75,4 +76,12 @@ function get_attributes_string(group::HDF5.Group; addnewline::Bool = true, newli
         out *= stringToAdd * " "
     end
     return out[1:end-2]
+end
+
+function get_attribute(filename, groupname, attribute)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        g_mipt = file[groupname]
+        return read_attribute(g_mipt, attribute)
+    end
 end
