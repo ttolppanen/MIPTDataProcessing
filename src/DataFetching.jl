@@ -3,6 +3,7 @@
 export get_groups
 export get_groups_with_param
 export get_probabilities
+export get_data
 export get_data_end_mean
 export get_attributes_string
 export get_attribute
@@ -40,17 +41,32 @@ function get_probabilities(group::HDF5.Group)
     return out
 end
 
-function get_data_end_mean(filename, groupname, probabilities, observer::Symbol)
+function get_data(filename::String, groupname::String, probability::Real, observer::String, trajectories = :all)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        g_mipt = file[groupname]
+        return get_data(g_mipt, probability, observer, trajectories)
+    end
+end
+function get_data(group::HDF5.Group, probability::Real, observer::String, trajectories = :all)
+    if (trajectories == :all)
+        return read(group["p = $probability"][observer])
+    else
+        return group["p = $probability"][observer][1:end, trajectories]
+    end
+end
+
+function get_data_end_mean(filename, groupname, probabilities, observer::String)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "r") do file
         g_mipt = file[groupname]
         return get_data_end_mean(g_mipt, probabilities, observer)
     end
 end
-function get_data_end_mean(group::HDF5.Group, probabilities, observer::Symbol)
+function get_data_end_mean(group::HDF5.Group, probabilities, observer::String)
     out = []
     for p in probabilities
-        e_mean = read_attribute(group["p = $p"][string(observer)], "end_mean")
+        e_mean = read_attribute(group["p = $p"][observer], "end_mean")
         push!(out, e_mean)
     end
     return out
