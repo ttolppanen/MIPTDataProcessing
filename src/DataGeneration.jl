@@ -5,7 +5,7 @@
 export generate_data
 
 function generate_data(filename; kwargs...)
-    check_version_number()
+    check_version_number(filename)
     if kwargs[:alg] == :exact
         calc_exact(filename; kwargs...)
     elseif kwargs[:alg] == :krylov 
@@ -15,7 +15,7 @@ function generate_data(filename; kwargs...)
     else
         throw(error("No alg provided. Possible alg are :exact, :krylov, :mps"))
     end
-    add_version_number()
+    add_version_number(filename)
 end
 
 function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, traj, w, U, J, observables, alg, save_before_effect)
@@ -82,7 +82,7 @@ function calc_mps(filename; d, L, dt, t, state, trotter_order, probabilities, me
     end
 end
 
-function check_version_number()
+function check_version_number(filename)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     if isfile(path_to_file)
         h5open(path_to_file, "cw") do file
@@ -95,13 +95,14 @@ function check_version_number()
                 if file_version[1] != package_version[1] || file_version[2] != package_version[2]
                     throw(error(error_text))
                 end
+            else
+                throw(error("File exists but doesn't have a version number"))
             end
-            throw(error("File exists but doesn't have a version number"))
         end
     end
 end
 
-function add_version_number()
+function add_version_number(filename)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "cw") do file
         if (!haskey(attributes(file), "version"))
