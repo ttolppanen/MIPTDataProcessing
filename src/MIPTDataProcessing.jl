@@ -9,6 +9,7 @@ using Statistics
 
 # internal
 include("Utility/SplitKwargs.jl")
+include("Utility/VersionNumber.jl")
 
 # export
 include("DataPath.jl")
@@ -18,5 +19,6 @@ include("Measurements.jl")
 include("Observables.jl")
 include("DataGeneration.jl")
 include("DataFetching.jl")
+include("VersionUpdate.jl")
 
 end # module

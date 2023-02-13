@@ -5,7 +5,7 @@
 export generate_data
 
 function generate_data(filename; kwargs...)
-    # check if file exists...
+    check_version_number()
     if kwargs[:alg] == :exact
         calc_exact(filename; kwargs...)
     elseif kwargs[:alg] == :krylov 
@@ -13,9 +13,9 @@ function generate_data(filename; kwargs...)
     elseif kwargs[:alg] == :mps
         calc_mps(filename; kwargs...)
     else
-        println("error in alg")
-        # throw error
+        throw(error("No alg provided. Possible alg are :exact, :krylov, :mps"))
     end
+    add_version_number()
 end
 
 function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, traj, w, U, J, observables, alg, save_before_effect)
@@ -78,6 +78,34 @@ function calc_mps(filename; d, L, dt, t, state, trotter_order, probabilities, me
             if traj_to_calculate <= 0 continue end # skip this loop if the data exists already
             obsrv_data = extract_observable_data(r, obs_i, traj_to_calculate)
             saveh5(filename, obsrv_data, p, observable; sp..., ITensors_apply_kwargs...)
+        end
+    end
+end
+
+function check_version_number()
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    if isfile(path_to_file)
+        h5open(path_to_file, "cw") do file
+            if haskey(attributes(file), "version")
+                file_version = read_attribute(file, "version")
+                package_version = package_version_number()
+                error_text = "Package version is $package_version but file version is $file_version"
+                file_version = split(file_version, ".")
+                package_version = split(package_version, ".")
+                if file_version[1] != package_version[1] || file_version[2] != package_version[2]
+                    throw(error(error_text))
+                end
+            end
+            throw(error("File exists but doesn't have a version number"))
+        end
+    end
+end
+
+function add_version_number()
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "cw") do file
+        if (!haskey(attributes(file), "version"))
+            attributes(file)["version"] = package_version_number()
         end
     end
 end
