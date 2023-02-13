@@ -1,21 +1,13 @@
 # using HDF5
 
 export get_groups
-export get_groups_with_param
 export get_probabilities
 export get_data
 export get_data_end_mean
 export get_attributes_string
 export get_attribute
 
-function get_groups(filename)
-    path_to_file = joinpath(getdatapath(), filename * ".h5")
-    h5open(path_to_file, "r") do file
-        return keys(file)
-    end
-end
-
-function get_groups_with_param(filename; params...)
+function get_groups(filename; params...)
     path_to_file = joinpath(getdatapath(), filename * ".h5")
     h5open(path_to_file, "r") do file
         for g in file

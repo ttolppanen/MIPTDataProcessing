@@ -25,26 +25,27 @@ function calc_exact(filename; d, L, dt, t, state, probabilities, measurement, tr
     expU = exp(-im * dt * Matrix(H))
     meffect! = get_measurements()[measurement][:exact](; sp...)
     for p in probabilities
-        effect!(state) = meffect!(state, p)
-        r_f() = exactevolve(state0, expU, dt, t; effect!)
         traj_to_solve = traj - get_min_existing_traj(filename, p, observables; sp...)
         if traj_to_solve <= 0
             println("Trajectories already exist for all observers in p = " * string(p))
             continue
         end
+        obs_f = [get_observables()[obs][:exact](; sp...) for obs in observables]
+        effect!(state) = meffect!(state, p)
+        r_f() = exactevolve(state0, expU, dt, t, obs_f...; effect!)
         println("Solving " * string(traj_to_solve) * " trajectories for p = " * string(p))
         r = solvetrajectories(r_f, traj_to_solve; paral = :distributed)
-        for observable in observables
+        for (obs_i, observable) in enumerate(observables)
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp...)
             if traj_to_calculate <= 0
-                println("Trajectories already exist for p = " * string(p) * "observable = " * string(observable))
+                println("Trajectories already exist for p = " * string(p) * " observable = " * string(observable))
                 continue
             end
-            obsrv_data = zeros(length(r[1]), traj_to_calculate)
+            num_of_timesteps = length(r[1][obs_i, :])
+            obsrv_data = zeros(num_of_timesteps, traj_to_calculate)
             for traj_i in 1:traj_to_calculate
-                for timestep_i in eachindex(r[traj_i])
-                    s = r[traj_i][timestep_i] # this gets used in get_observable
-                    obsrv_data[timestep_i, traj_i] = get_observables()[observable][:exact](s; sp...)
+                for timestep_i in 1:num_of_timesteps
+                    obsrv_data[timestep_i, traj_i] = r[traj_i][obs_i, timestep_i]
                 end
             end
             saveh5(filename, obsrv_data, p, observable; sp...)
@@ -70,7 +71,7 @@ function calc_krylov(filename; d, L, dt, t, state, k, probabilities, measurement
         for observable in observables
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp...)
             if traj_to_calculate <= 0
-                println("Trajectories already exist for p = " * string(p) * "observable = " * string(observable))
+                println("Trajectories already exist for p = " * string(p) * " observable = " * string(observable))
                 continue
             end
             obsrv_data = zeros(length(r[1]), traj_to_calculate)
@@ -103,7 +104,7 @@ function calc_mps(filename; d, L, dt, t, state, trotter_order, probabilities, me
         for observable in observables
             traj_to_calculate = traj - get_num_of_traj(filename, p, observable; sp..., ITensors_apply_kwargs...)
             if traj_to_calculate <= 0
-                println("Trajectories already exist for p = " * string(p) * "observable = " * string(observable))
+                println("Trajectories already exist for p = " * string(p) * " observable = " * string(observable))
                 continue
             end
             obsrv_data = zeros(length(r[1]), traj_to_calculate)

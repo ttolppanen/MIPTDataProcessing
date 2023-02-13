@@ -33,13 +33,12 @@ end
 
 function get_min_existing_traj(filename, msr_prob, observables; simulation_param...)
     out = 0
-    for i in eachindex(observables)
-        observable = observables[i]
+    for (i, observable) in enumerate(observables)
         if i == 1
             out = get_num_of_traj(filename, msr_prob, observable; simulation_param...)
         else
             traj = get_num_of_traj(filename, msr_prob, observable; simulation_param...)
-            if (traj > out)
+            if (traj < out)
                 out = traj 
             end
         end
