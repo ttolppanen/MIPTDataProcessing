@@ -24,10 +24,14 @@ function get_num_of_traj(filename, msr_prob, observable; simulation_param...)
                     return size(g_mipt["p = $msr_prob"][string(observable)])[2] # 1 timesteps, 2 trajectories
                 end
             end
-            return 0;
+            return 0
         end
-    catch
-        return 0;
+    catch error
+        if isa(error, ErrorException) || isa(error, KeyError)
+            return 0
+        else
+            throw(error)
+        end
     end
 end
 

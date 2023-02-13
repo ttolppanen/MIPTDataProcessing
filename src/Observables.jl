@@ -4,7 +4,7 @@
 # s : state; a state from the calculated time-evolution
 function get_observables()
     observables = Dict(
-        :entanglement_half => (; exact = entanglement_half, mps = (s; sp...) ->  entanglement_half_mps),
+        :entanglement_half => (; exact = entanglement_half, mps = entanglement_half_mps),
         :boson_half => (; exact = boson_half, NOT_IMPLEMENTED_YET = (s; sp...) ->  "NOT_IMPLEMENTED_YET")
     )
     return observables
