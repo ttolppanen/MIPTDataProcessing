@@ -2,6 +2,7 @@
 
 export get_groups
 export get_probabilities
+export get_probabilities_dataset
 export get_data
 export get_data_end_mean
 export get_attributes_string
@@ -29,6 +30,23 @@ function get_probabilities(group::HDF5.Group)
     out = []
     for g_p in group
         push!(out, read_attribute(g_p, "p"))
+    end
+    return out
+end
+
+function get_probabilities_dataset(filename, groupname, dataset_name::String)
+    path_to_file = joinpath(getdatapath(), filename * ".h5")
+    h5open(path_to_file, "r") do file
+        g_mipt = file[groupname]
+        return get_probabilities_dataset(g_mipt, dataset_name)
+    end
+end
+function get_probabilities_dataset(group::HDF5.Group, dataset_name::String)
+    out = []
+    for g_p in group
+        if haskey(g_p, dataset_name)
+            push!(out, read_attribute(g_p, "p"))
+        end
     end
     return out
 end
