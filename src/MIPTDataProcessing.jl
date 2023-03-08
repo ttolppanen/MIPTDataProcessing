@@ -4,6 +4,7 @@ using QuantumStates
 using QuantumOperators
 using QuantumTimeEvolution
 using ITensors
+using LinearAlgebra
 using HDF5
 using Statistics
 
