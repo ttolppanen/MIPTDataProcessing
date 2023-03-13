@@ -74,7 +74,7 @@ function calc_mps(filename; d, L, dt, t, state, trotter_order, probabilities, me
         r_f() = mpsevolve(state0, gates, dt, t, obs_f...; effect!, save_before_effect, ITensors_apply_kwargs...)
         r = solvetrajectories(r_f, traj_to_solve; paral = :distributed)
         for (obs_i, observable) in enumerate(observables)
-            traj_to_calculate = trajectories_for_calculating_observables(filename, traj, p, observable; sp...)
+            traj_to_calculate = trajectories_for_calculating_observables(filename, traj, p, observable; sp..., ITensors_apply_kwargs...)
             if traj_to_calculate <= 0 continue end # skip this loop if the data exists already
             obsrv_data = extract_observable_data(r, obs_i, traj_to_calculate)
             saveh5(filename, obsrv_data, p, observable; sp..., ITensors_apply_kwargs...)
